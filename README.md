@@ -1,6 +1,6 @@
 # filterstream
 
-`filterstream` is a generic filter for streams inspired per gulp-filter
+`filterstream` is a function based filter for streams inspired per gulp-filter
  but no limited to Gulp nor to objectMode streams.
 
 [![NPM version](https://badge.fury.io/js/filterstream.png)](https://npmjs.org/package/filterstream) [![Build status](https://secure.travis-ci.org/nfroidure/filterstream.png)](https://travis-ci.org/nfroidure/filterstream) [![Dependency Status](https://david-dm.org/nfroidure/filterstream.png)](https://david-dm.org/nfroidure/filterstream) [![devDependency Status](https://david-dm.org/nfroidure/filterstream/dev-status.png)](https://david-dm.org/nfroidure/filterstream#info=devDependencies) [![Coverage Status](https://coveralls.io/repos/nfroidure/filterstream/badge.png?branch=master)](https://coveralls.io/r/nfroidure/filterstream?branch=master) [![Code Climate](https://codeclimate.com/github/nfroidure/filterstream.png)](https://codeclimate.com/github/nfroidure/filterstream)
