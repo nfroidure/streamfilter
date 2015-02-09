@@ -92,10 +92,14 @@ Note that in this case, this is *your* responsibility to end the restore stream
 
 ### stream:Stream FilterStream(filterCallback:Function, options:Object)
 
-Filter piped in streams according to the given `filterCallback`. Options are
- passed in as is in the various stream instances spawned by this module. So,
- to use the objectMode, simply pass in the `options.objectMode` value set to
- `true`.
+Filter piped in streams according to the given `filterCallback` that takes the
+ following arguments: `chunk` the actual chunk, `encoding` the chunk encoding,
+ `filterResultCallback` the function to call as the result of the filtering
+ process with `true` in argument to filter her or `false` otherwise.
+
+Options are passed in as is in the various stream instances spawned by this
+ module. So, to use the objectMode, simply pass in the `options.objectMode`
+ value set to `true`.
 
 #### options.restore
 Set to `true`, this option create a readable stream allowing you to use the
