@@ -1,15 +1,15 @@
-# filterstream
+# streamfilter
 
-`filterstream` is a function based filter for streams inspired per gulp-filter
+`streamfilter` is a function based filter for streams inspired per gulp-filter
  but no limited to Gulp nor to objectMode streams.
 
-[![NPM version](https://badge.fury.io/js/filterstream.png)](https://npmjs.org/package/filterstream) [![Build status](https://secure.travis-ci.org/nfroidure/filterstream.png)](https://travis-ci.org/nfroidure/filterstream) [![Dependency Status](https://david-dm.org/nfroidure/filterstream.png)](https://david-dm.org/nfroidure/filterstream) [![devDependency Status](https://david-dm.org/nfroidure/filterstream/dev-status.png)](https://david-dm.org/nfroidure/filterstream#info=devDependencies) [![Coverage Status](https://coveralls.io/repos/nfroidure/filterstream/badge.png?branch=master)](https://coveralls.io/r/nfroidure/filterstream?branch=master) [![Code Climate](https://codeclimate.com/github/nfroidure/filterstream.png)](https://codeclimate.com/github/nfroidure/filterstream)
+[![NPM version](https://badge.fury.io/js/streamfilter.png)](https://npmjs.org/package/streamfilter) [![Build status](https://secure.travis-ci.org/nfroidure/streamfilter.png)](https://travis-ci.org/nfroidure/streamfilter) [![Dependency Status](https://david-dm.org/nfroidure/streamfilter.png)](https://david-dm.org/nfroidure/streamfilter) [![devDependency Status](https://david-dm.org/nfroidure/streamfilter/dev-status.png)](https://david-dm.org/nfroidure/streamfilter#info=devDependencies) [![Coverage Status](https://coveralls.io/repos/nfroidure/streamfilter/badge.png?branch=master)](https://coveralls.io/r/nfroidure/streamfilter?branch=master) [![Code Climate](https://codeclimate.com/github/nfroidure/streamfilter.png)](https://codeclimate.com/github/nfroidure/streamfilter)
 
 ## Installation
 
-First install `filterstream` in you project:
+First install `streamfilter` in you project:
 ```sh
-npm install --save filterstream
+npm install --save streamfilter
 ```
 
 ## Getting started
@@ -19,7 +19,7 @@ There are 3 scenarios of use :
 ### Simple filter
 
 ```js
-var FilterStream = require('filterstream');
+var FilterStream = require('streamfilter');
 
 var filter = new FilterStream(function(chunk, encoding, cb) {
   if(itmustbefiltered) {
@@ -38,7 +38,7 @@ process.stdin
 ### Filter and restore
 
 ```js
-var FilterStream = require('filterstream');
+var FilterStream = require('streamfilter');
 
 var filter = new FilterStream(function(chunk, encoding, cb) {
     if(itmustbefiltered) {
@@ -61,7 +61,7 @@ filter.restore.pipe(process.stderr);
 Let's be hype!
 
 ```js
-var FilterStream = require('filterstream');
+var FilterStream = require('streamfilter');
 
 // Filter values
 var filter = new FilterStream(function(chunk, encoding, cb) {
@@ -115,8 +115,8 @@ Feel free to submit us your improvements. To do so, you must accept to publish
 To start contributing, first run the following to setup the development
  environment:
 ```sh
-git clone git@github.com:nfroidure/filterstream.git
-cd filterstream
+git clone git@github.com:nfroidure/streamfilter.git
+cd streamfilter
 npm install
 ```
 
@@ -126,6 +126,6 @@ npm test
 ```
 
 ## Stats
-[![NPM](https://nodei.co/npm/filterstream.png?downloads=true&stars=true)](https://nodei.co/npm/filterstream/)
-[![NPM](https://nodei.co/npm-dl/filterstream.png)](https://nodei.co/npm/filterstream/)
+[![NPM](https://nodei.co/npm/streamfilter.png?downloads=true&stars=true)](https://nodei.co/npm/streamfilter/)
+[![NPM](https://nodei.co/npm-dl/streamfilter.png)](https://nodei.co/npm/streamfilter/)
 
