@@ -26,10 +26,10 @@
   "devDependencies": {
     "coveralls": "^2.11.2",
     "istanbul": "^0.3.5",
-    "mocha": "^2.1.0"
+    "mocha": "^2.1.0",
+    "streamtest": "^1.0.0"
   },
   "dependencies": {
-    "readable-stream": "^1.0.33",
-    "streamtest": "^1.0.0"
+    "readable-stream": "^1.0.33"
   }
 }
