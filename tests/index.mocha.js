@@ -74,7 +74,7 @@ describe('StreamFilter', function () {
             inputStream.pipe(filter).pipe(outputStream);
           });
 
-          it('with restore and passthrough option in a differrent pipeline', function(done) {
+          it('with restore and passthrough option in a different pipeline', function(done) {
             var inputStream = StreamTest[version].fromObjects([object1, object2]);
             var filter = new StreamFilter(function(chunk, encoding, cb) {
               if(chunk == object2) {
@@ -105,8 +105,10 @@ describe('StreamFilter', function () {
           });
 
           it('with restore and passthrough option in the same pipeline', function(done) {
-            var passThroughStreamEnded = false;
-            var inputStream = StreamTest[version].fromObjects([object1, object2]);
+            var passThroughStream1Ended = false;
+            var passThroughStream2Ended = false;
+            var duplexStreamEnded = false;
+            var inputStream = StreamTest[version].fromObjects([object1, object2, object3]);
             var filter = new StreamFilter(function(chunk, encoding, cb) {
               if(chunk === object2) {
                 return cb(true);
@@ -121,19 +123,129 @@ describe('StreamFilter', function () {
               if(err) {
                 return done(err);
               }
-              assert.deepEqual(objs, [object1, object2]);
-              done();
+              assert.deepEqual(objs, [object1, object2, object3]);
+              setImmediate(done);
+            });
+            var duplexStream = new Stream.Duplex({ objectMode: true });
+            duplexStream._write = function(obj, unused, cb) {
+              duplexStream.push(obj);
+              setImmediate(cb);
+            };
+            duplexStream._read = function(n) {};
+            duplexStream.on('finish', function() {
+              setTimeout(function() {
+                duplexStream.push(null);
+              }, 100);
+            });
+            outputStream.on('end', function() {
+              assert(passThroughStream1Ended,
+                'PassThrough stream ends before the output one.');
+              assert(passThroughStream2Ended,
+                'PassThrough stream ends before the output one.');
+              assert(duplexStreamEnded,
+                'Duplex stream ends before the output one.');
+            })
+            filter.restore.on('end', function() {
+              assert(passThroughStream1Ended,
+                'PassThrough stream ends before the restore one.');
+              assert(passThroughStream2Ended,
+                'PassThrough stream ends before the restore one.');
+              assert(duplexStreamEnded,
+                'Duplex stream ends before the restore one.');
             });
             inputStream.pipe(filter)
               .pipe(new Stream.PassThrough({ objectMode: true }))
               .on('end', function() {
-                passThroughStreamEnded = true;
+                passThroughStream1Ended = true;
+              })
+              .pipe(new Stream.PassThrough({ objectMode: true }))
+              .on('end', function() {
+                passThroughStream2Ended = true;
+              })
+              .pipe(duplexStream)
+              .on('end', function() {
+                duplexStreamEnded = true;
               })
               .pipe(filter.restore)
+              .pipe(outputStream);
+          });
+
+          it('with restore and passthrough option in the same pipeline and a buffered stream', function(done) {
+            var passThroughStream1Ended = false;
+            var passThroughStream2Ended = false;
+            var duplexStreamEnded = false;
+            var inputStream = StreamTest[version].fromObjects([object1, object2, object3]);
+            var filter = new StreamFilter(function(chunk, encoding, cb) {
+              if(chunk === object2) {
+                return cb(true);
+              }
+              return cb(false);
+            }, {
+              objectMode: true,
+              restore: true,
+              passthrough: true
+            });
+            var outputStream = StreamTest[version].toObjects(function(err, objs) {
+              if(err) {
+                return done(err);
+              }
+              assert.equal(objs.length, 3);
+              setImmediate(done);
+            });
+            var duplexStream = new Stream.Duplex({ objectMode: true });
+            duplexStream._objs = [];
+            duplexStream._write = function(obj, unused, cb) {
+              duplexStream._objs.push(obj);
+              cb();
+            };
+            duplexStream._read = function(n) {
+              var obj;
+              if(duplexStream._hasFinished) {
+                while(duplexStream._objs.length) {
+                  obj = duplexStream._objs.shift();
+                  if(!duplexStream.push(obj)) {
+                    break;
+                  }
+                }
+                if(0 === duplexStream._objs.length) {
+                  duplexStream.push(null);
+                }
+              }
+            };
+            duplexStream.on('finish', function() {
+              duplexStream._hasFinished = true;
+              duplexStream._read();
+            });
+            outputStream.on('end', function() {
+              assert(passThroughStream1Ended,
+                'PassThrough stream ends before the output one.');
+              assert(passThroughStream2Ended,
+                'PassThrough stream ends before the output one.');
+              assert(duplexStreamEnded,
+                'Duplex stream ends before the output one.');
+            })
+            filter.restore.on('end', function() {
+              assert(passThroughStream1Ended,
+                'PassThrough stream ends before the restore one.');
+              assert(passThroughStream2Ended,
+                'PassThrough stream ends before the restore one.');
+              assert(duplexStreamEnded,
+                'Duplex stream ends before the restore one.');
+            });
+            inputStream.pipe(filter)
+              .pipe(new Stream.PassThrough({ objectMode: true }))
               .on('end', function() {
-                assert(passThroughStreamEnded,
-                  'PassThrough stream ends before the restore one.');
+                passThroughStream1Ended = true;
               })
+              .pipe(new Stream.PassThrough({ objectMode: true }))
+              .on('end', function() {
+                passThroughStream2Ended = true;
+              })
+              .pipe(duplexStream)
+              .on('end', function() {
+                duplexStreamEnded = true;
+              })
+              .pipe(filter.restore)
               .pipe(outputStream);
           });
 
