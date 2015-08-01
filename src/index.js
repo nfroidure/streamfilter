@@ -21,7 +21,7 @@ function StreamFilter(filterCallback, options) {
 
   this._filterStreamEnded = false;
   this._restoreStreamCallback = null;
-  
+
   this._transform = function(chunk, encoding, done) {
     filterCallback(chunk, encoding, function StreamFilterCallback(filter) {
       if(!filter) {
@@ -66,4 +66,3 @@ function StreamFilter(filterCallback, options) {
 util.inherits(StreamFilter, stream.Transform);
 
 module.exports = StreamFilter;
-

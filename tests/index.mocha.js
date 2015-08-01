@@ -1,4 +1,5 @@
 var assert = require('assert');
+var Stream = require('stream');
 var StreamTest = require('streamtest');
 var StreamFilter = require('../src/index');
 
@@ -13,7 +14,7 @@ describe('StreamFilter', function () {
     }, /Error/);
 
   });
-  
+
   // Iterating through versions
   StreamTest.versions.forEach(function(version) {
 
@@ -73,7 +74,7 @@ describe('StreamFilter', function () {
             inputStream.pipe(filter).pipe(outputStream);
           });
 
-          it('with restore and passthrough option', function(done) {
+          it('with restore and passthrough option in a differrent pipeline', function(done) {
             var inputStream = StreamTest[version].fromObjects([object1, object2]);
             var filter = new StreamFilter(function(chunk, encoding, cb) {
               if(chunk == object2) {
@@ -101,6 +102,39 @@ describe('StreamFilter', function () {
             var restoreInputStream = StreamTest[version].fromObjects([object3]);
             inputStream.pipe(filter).pipe(outputStream);
             restoreInputStream.pipe(filter.restore);
+          });
+
+          it('with restore and passthrough option in the same pipeline', function(done) {
+            var passThroughStreamEnded = false;
+            var inputStream = StreamTest[version].fromObjects([object1, object2]);
+            var filter = new StreamFilter(function(chunk, encoding, cb) {
+              if(chunk === object2) {
+                return cb(true);
+              }
+              return cb(false);
+            }, {
+              objectMode: true,
+              restore: true,
+              passthrough: true
+            });
+            var outputStream = StreamTest[version].toObjects(function(err, objs) {
+              if(err) {
+                return done(err);
+              }
+              assert.deepEqual(objs, [object1, object2]);
+              done();
+            });
+            inputStream.pipe(filter)
+              .pipe(new Stream.PassThrough({ objectMode: true }))
+              .on('end', function() {
+                passThroughStreamEnded = true;
+              })
+              .pipe(filter.restore)
+              .on('end', function() {
+                assert(passThroughStreamEnded,
+                  'PassThrough stream ends before the restore one.');
+              })
+              .pipe(outputStream);
           });
 
         });
@@ -196,4 +230,3 @@ describe('StreamFilter', function () {
   });
 
 });
-
