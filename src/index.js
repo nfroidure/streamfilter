@@ -27,7 +27,7 @@ function StreamFilter(filterCallback, options) {
       if(!filter) {
         _this.push(chunk, encoding);
       } else if(_this.restore) {
-        _this.restore.push(chunk);
+        _this.restore.push(chunk, encoding);
       }
       done();
     });
@@ -50,7 +50,7 @@ function StreamFilter(filterCallback, options) {
     this.restore = new stream.Transform(options);
 
     this.restore._transform = function(chunk, encoding, done) {
-      _this.restore.push(chunk);
+      _this.restore.push(chunk, encoding);
       done();
     };
 
