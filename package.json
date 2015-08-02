@@ -6,7 +6,9 @@
   "scripts": {
     "test": "mocha tests/*.mocha.js",
     "coveralls": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha --report lcovonly -- tests/*.mocha.js -R spec -t 5000 && cat ./coverage/lcov.info | coveralls && rm -rf ./coverage",
-    "cover": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha --report html -- tests/*.mocha.js -R spec -t 5000"
+    "cover": "./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha --report html -- tests/*.mocha.js -R spec -t 5000",
+    "lint": "eslint **/*.s",
+    "cli": "env NPM_RUN_CLI=1"
   },
   "repository": {
     "type": "git",
@@ -25,8 +27,10 @@
   "homepage": "https://github.com/nfroidure/streamfilter",
   "devDependencies": {
     "coveralls": "^2.11.2",
+    "eslint": "^1.0.0",
     "istanbul": "^0.3.5",
     "mocha": "^2.1.0",
+    "sf-lint": "^1.0.2",
     "streamtest": "^1.0.0"
   },
   "dependencies": {

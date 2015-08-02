@@ -3,9 +3,9 @@ var Stream = require('stream');
 var StreamTest = require('streamtest');
 var StreamFilter = require('../src/index');
 
-describe('StreamFilter', function () {
+describe('StreamFilter', function() {
 
-  describe('should fail', function () {
+  describe('should fail', function() {
 
     it('if options.filter is not a function', function() {
       assert.throws(function() {
@@ -20,22 +20,22 @@ describe('StreamFilter', function () {
 
     describe('for ' + version + ' streams', function() {
 
-      describe('in object mode', function () {
+      describe('in object mode', function() {
 
-        describe('should work', function () {
-          var object1 = {test: 'plop'};
-          var object2 = {test: 'plop2'};
-          var object3 = {test: 'plop3'};
+        describe('should work', function() {
+          var object1 = { test: 'plop' };
+          var object2 = { test: 'plop2' };
+          var object3 = { test: 'plop3' };
 
           it('with no restore option', function(done) {
             var inputStream = StreamTest[version].fromObjects([object1, object2]);
-            var filter = new StreamFilter(function(chunk, encoding, cb) {
-              if(chunk == object2) {
+            var filter = new StreamFilter(function(obj, unused, cb) {
+              if(obj === object2) {
                 return cb(true);
               }
               return cb(false);
             }, {
-              objectMode: true
+              objectMode: true,
             });
             var outputStream = StreamTest[version].toObjects(function(err, objs) {
               if(err) {
@@ -44,62 +44,65 @@ describe('StreamFilter', function () {
               assert.deepEqual(objs, [object1]);
               done();
             });
+
             inputStream.pipe(filter).pipe(outputStream);
           });
 
           it('with restore option', function(done) {
             var inputStream = StreamTest[version].fromObjects([object1, object2]);
-            var filter = new StreamFilter(function(chunk, encoding, cb) {
-              if(chunk == object2) {
-                return cb(true);
-              }
-              return cb(false);
-            }, {
-              objectMode: true,
-              restore: true
-            });
-            var outputStream = StreamTest[version].toObjects(function(err, objs) {
-              if(err) {
-                return done(err);
-              }
-              assert.deepEqual(objs, [object1]);
-              filter.restore.pipe(StreamTest[version].toObjects(function(err, objs) {
-                if(err) {
-                  return done(err);
-                }
-                assert.deepEqual(objs, [object2]);
-                done();
-              }));
-            });
-            inputStream.pipe(filter).pipe(outputStream);
-          });
-
-          it('with restore and passthrough option in a different pipeline', function(done) {
-            var inputStream = StreamTest[version].fromObjects([object1, object2]);
-            var filter = new StreamFilter(function(chunk, encoding, cb) {
-              if(chunk == object2) {
+            var filter = new StreamFilter(function(obj, unused, cb) {
+              if(obj === object2) {
                 return cb(true);
               }
               return cb(false);
             }, {
               objectMode: true,
               restore: true,
-              passthrough: true
             });
             var outputStream = StreamTest[version].toObjects(function(err, objs) {
               if(err) {
                 return done(err);
               }
               assert.deepEqual(objs, [object1]);
-              filter.restore.pipe(StreamTest[version].toObjects(function(err, objs) {
-                if(err) {
-                  return done(err);
+              filter.restore.pipe(StreamTest[version].toObjects(function(err2, objs2) {
+                if(err2) {
+                  return done(err2);
                 }
-                assert.deepEqual(objs, [object3, object2]);
+                assert.deepEqual(objs2, [object2]);
+                done();
+              }));
+            });
+
+            inputStream.pipe(filter).pipe(outputStream);
+          });
+
+          it('with restore and passthrough option in a different pipeline', function(done) {
+            var inputStream = StreamTest[version].fromObjects([object1, object2]);
+            var filter = new StreamFilter(function(obj, unused, cb) {
+              if(obj === object2) {
+                return cb(true);
+              }
+              return cb(false);
+            }, {
+              objectMode: true,
+              restore: true,
+              passthrough: true,
+            });
+            var outputStream = StreamTest[version].toObjects(function(err, objs) {
+              if(err) {
+                return done(err);
+              }
+              assert.deepEqual(objs, [object1]);
+              filter.restore.pipe(StreamTest[version].toObjects(function(err2, objs2) {
+                if(err2) {
+                  return done(err2);
+                }
+                assert.deepEqual(objs2, [object3, object2]);
                 done();
               }));
             });
             var restoreInputStream = StreamTest[version].fromObjects([object3]);
+
             inputStream.pipe(filter).pipe(outputStream);
             restoreInputStream.pipe(filter.restore);
           });
@@ -117,7 +120,7 @@ describe('StreamFilter', function () {
             }, {
               objectMode: true,
               restore: true,
-              passthrough: true
+              passthrough: true,
             });
             var outputStream = StreamTest[version].toObjects(function(err, objs) {
               if(err) {
@@ -127,11 +130,12 @@ describe('StreamFilter', function () {
               setImmediate(done);
             });
             var duplexStream = new Stream.Duplex({ objectMode: true });
+
             duplexStream._write = function(obj, unused, cb) {
               duplexStream.push(obj);
               setImmediate(cb);
             };
-            duplexStream._read = function(n) {};
+            duplexStream._read = function() {};
             duplexStream.on('finish', function() {
               setTimeout(function() {
                 duplexStream.push(null);
@@ -144,7 +148,7 @@ describe('StreamFilter', function () {
                 'PassThrough stream ends before the output one.');
               assert(duplexStreamEnded,
                 'Duplex stream ends before the output one.');
-            })
+            });
             filter.restore.on('end', function() {
               assert(passThroughStream1Ended,
                 'PassThrough stream ends before the restore one.');
@@ -183,7 +187,7 @@ describe('StreamFilter', function () {
             }, {
               objectMode: true,
               restore: true,
-              passthrough: true
+              passthrough: true,
             });
             var outputStream = StreamTest[version].toObjects(function(err, objs) {
               if(err) {
@@ -193,13 +197,15 @@ describe('StreamFilter', function () {
               setImmediate(done);
             });
             var duplexStream = new Stream.Duplex({ objectMode: true });
+
             duplexStream._objs = [];
             duplexStream._write = function(obj, unused, cb) {
               duplexStream._objs.push(obj);
               cb();
             };
-            duplexStream._read = function(n) {
+            duplexStream._read = function() {
               var obj;
+
               if(duplexStream._hasFinished) {
                 while(duplexStream._objs.length) {
                   obj = duplexStream._objs.shift();
@@ -223,7 +229,7 @@ describe('StreamFilter', function () {
                 'PassThrough stream ends before the output one.');
               assert(duplexStreamEnded,
                 'Duplex stream ends before the output one.');
-            })
+            });
             filter.restore.on('end', function() {
               assert(passThroughStream1Ended,
                 'PassThrough stream ends before the restore one.');
@@ -253,17 +259,17 @@ describe('StreamFilter', function () {
 
       });
 
-      describe('in buffer mode', function () {
+      describe('in buffer mode', function() {
 
-        describe('should work', function () {
-          var buffer1 = Buffer('plop');
-          var buffer2 = Buffer('plop2');
-          var buffer3 = Buffer('plop3');
+        describe('should work', function() {
+          var buffer1 = new Buffer('plop');
+          var buffer2 = new Buffer('plop2');
+          var buffer3 = new Buffer('plop3');
 
           it('with no restore option', function(done) {
             var inputStream = StreamTest[version].fromChunks([buffer1, buffer2]);
             var filter = new StreamFilter(function(chunk, encoding, cb) {
-              if(chunk == buffer1) {
+              if(chunk.toString() === buffer1.toString()) {
                 return cb(true);
               }
               return cb(false);
@@ -275,6 +281,7 @@ describe('StreamFilter', function () {
               assert.equal(text, buffer2.toString());
               done();
             });
+
             inputStream.pipe(filter).pipe(outputStream);
           });
 
@@ -286,49 +293,51 @@ describe('StreamFilter', function () {
               }
               return cb(false);
             }, {
-              restore: true
+              restore: true,
             });
             var outputStream = StreamTest[version].toText(function(err, text) {
               if(err) {
                 return done(err);
               }
               assert.equal(text, buffer1.toString());
-              filter.restore.pipe(StreamTest[version].toText(function(err, text) {
-                if(err) {
-                  return done(err);
+              filter.restore.pipe(StreamTest[version].toText(function(err2, text2) {
+                if(err2) {
+                  return done(err2);
                 }
-                assert.equal(text, buffer2.toString());
+                assert.equal(text2, buffer2.toString());
                 done();
               }));
             });
+
             inputStream.pipe(filter).pipe(outputStream);
           });
 
           it('with restore and passthrough option', function(done) {
             var inputStream = StreamTest[version].fromChunks([buffer1, buffer2]);
             var filter = new StreamFilter(function(chunk, encoding, cb) {
-              if(chunk == buffer2) {
+              if(chunk.toString() === buffer2.toString()) {
                 return cb(true);
               }
               return cb(false);
             }, {
               restore: true,
-              passthrough: true
+              passthrough: true,
             });
             var outputStream = StreamTest[version].toText(function(err, text) {
               if(err) {
                 return done(err);
               }
               assert.equal(text, buffer1.toString());
-              filter.restore.pipe(StreamTest[version].toText(function(err, text) {
-                if(err) {
-                  return done(err);
+              filter.restore.pipe(StreamTest[version].toText(function(err2, text2) {
+                if(err2) {
+                  return done(err2);
                 }
-                assert.deepEqual(text, [buffer3.toString(), buffer2.toString()].join(''));
+                assert.deepEqual(text2, [buffer3.toString(), buffer2.toString()].join(''));
                 done();
               }));
             });
             var restoreInputStream = StreamTest[version].fromChunks([buffer3]);
+
             inputStream.pipe(filter).pipe(outputStream);
             restoreInputStream.pipe(filter.restore);
           });

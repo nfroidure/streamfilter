@@ -1,3 +1,5 @@
+'use strict';
+
 var stream = require('readable-stream');
 var util = require('util');
 
@@ -78,7 +80,7 @@ function StreamFilter(filterCallback, options) {
         if(_this.restore.__programmedPush) {
           _this.emit('error', new Error('No supposed to happen!'));
         }
-        _this.restore.__programmedPush = [].slice.call(arguments, 0);
+        _this.restore.__programmedPush = [chunk, encoding, done];
         _this.restore.__attemptPush();
       };
 
