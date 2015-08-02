@@ -281,7 +281,7 @@ describe('StreamFilter', function () {
           it('with restore option', function(done) {
             var inputStream = StreamTest[version].fromChunks([buffer1, buffer2]);
             var filter = new StreamFilter(function(chunk, encoding, cb) {
-              if(chunk == buffer2) {
+              if(chunk.toString() === buffer2.toString()) {
                 return cb(true);
               }
               return cb(false);
