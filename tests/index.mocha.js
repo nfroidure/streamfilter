@@ -15,6 +15,11 @@ describe('StreamFilter', function() {
 
   });
 
+    it('should work without new', function() {
+      var createFilter = StreamFilter;
+      assert(createFilter(function() {}) instanceof StreamFilter);
+    });
+
   // Iterating through versions
   StreamTest.versions.forEach(function(version) {
 
