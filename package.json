@@ -26,14 +26,14 @@
   },
   "homepage": "https://github.com/nfroidure/streamfilter",
   "devDependencies": {
-    "coveralls": "^2.11.2",
+    "coveralls": "^2.11.3",
     "eslint": "^1.0.0",
-    "istanbul": "^0.3.5",
-    "mocha": "^2.1.0",
+    "istanbul": "^0.3.17",
+    "mocha": "^2.2.5",
     "sf-lint": "^1.0.2",
-    "streamtest": "^1.0.0"
+    "streamtest": "^1.2.1"
   },
   "dependencies": {
-    "readable-stream": "^1.0.33"
+    "readable-stream": "^2.0.2"
   }
 }
