@@ -24,7 +24,7 @@ function StreamFilter(filterCallback, options) {
   this._filterStreamEnded = false;
   this._restoreStreamCallback = null;
 
-  this._transform = function(chunk, encoding, done) {
+  this._transform = function streamFilterTransform(chunk, encoding, done) {
     filterCallback(chunk, encoding, function StreamFilterCallback(filter) {
       if(!filter) {
         _this.push(chunk, encoding);
@@ -33,7 +33,9 @@ function StreamFilter(filterCallback, options) {
         if(options.passthrough) {
           _this.restore.write(chunk, encoding, done);
         } else {
-          _this.restore.__programPush(chunk, encoding, done);
+          _this.restore.__programPush(chunk, encoding, function() {
+            done();
+          });
         }
       } else {
         done();
@@ -41,7 +43,7 @@ function StreamFilter(filterCallback, options) {
     });
   };
 
-  this._flush = function(done) {
+  this._flush = function streamFilterFlush(done) {
     this._filterStreamEnded = true;
     done();
     if(options.restore) {
@@ -60,12 +62,12 @@ function StreamFilter(filterCallback, options) {
     if(options.passthrough) {
       this.restore = new stream.Transform(options);
 
-      this.restore._transform = function(chunk, encoding, done) {
+      this.restore._transform = function streamFilterRestoreTransform(chunk, encoding, done) {
         _this.restore.push(chunk, encoding);
         done();
       };
 
-      this.restore._flush = function(done) {
+      this.restore._flush = function streamFilterRestoreFlush(done) {
         _this._restoreStreamCallback = done;
         if(_this._filterStreamEnded) {
           done();
@@ -76,28 +78,39 @@ function StreamFilter(filterCallback, options) {
       this.restore.__waitPush = true;
       this.restore.__programmedPush = null;
 
-      this.restore.__programPush = function(chunk, encoding, done) {
+      this.restore.__programPush = function streamFilterRestoreProgramPush(chunk, encoding, done) {
         if(_this.restore.__programmedPush) {
-          _this.emit('error', new Error('No supposed to happen!'));
+          _this.restore.emit('error', new Error('Not supposed to happen!'));
         }
         _this.restore.__programmedPush = [chunk, encoding, done];
-        _this.restore.__attemptPush();
+        // Need to be async to avoid nested push attempts
+        setImmediate(_this.restore.__attemptPush.bind(_this.restore));
+        _this.restore.emit('readable');
+        _this.restore.emit('drain');
       };
 
-      this.restore.__attemptPush = function() {
+      this.restore.__attemptPush = function streamFilterRestoreAttemptPush() {
+        var cb = null;
+
         if(_this.restore.__waitPush) {
           if(_this.restore.__programmedPush) {
+            cb = _this.restore.__programmedPush[2];
             _this.restore.__waitPush = _this.restore.push(
               _this.restore.__programmedPush[0],
               _this.restore.__programmedPush[1]
             );
-            _this.restore.__programmedPush[2]();
             _this.restore.__programmedPush = null;
+            cb();
           }
+        } else {
+          setImmediate(function() {
+            // Need to be async to avoid nested push attempts
+            _this.restore.emit('readable');
+          });
         }
       };
 
-      this.restore._read = function() {
+      this.restore._read = function streamFilterRestoreRead() {
         _this.restore.__waitPush = true;
         // Need to be async to avoid nested push attempts
         setImmediate(_this.restore.__attemptPush.bind(this));

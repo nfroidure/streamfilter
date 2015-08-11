@@ -1,3 +1,5 @@
+'use strict';
+
 var assert = require('assert');
 var Stream = require('stream');
 var StreamTest = require('streamtest');
@@ -15,10 +17,15 @@ describe('StreamFilter', function() {
 
   });
 
+  describe('should work', function() {
+
     it('should work without new', function() {
       var createFilter = StreamFilter;
+
       assert(createFilter(function() {}) instanceof StreamFilter);
     });
+
+  });
 
   // Iterating through versions
   StreamTest.versions.forEach(function(version) {
@@ -107,14 +114,19 @@ describe('StreamFilter', function() {
                 return done(err);
               }
               assert.equal(objs.length, 32);
-              ++nDone == 2 ? done() : '';
+              if(2 === ++nDone) {
+                done();
+              }
             });
+
             filter.restore.pipe(StreamTest[version].toObjects(function(err2, objs2) {
               if(err2) {
                 return done(err2);
               }
               assert.equal(objs2.length, 32);
-              ++nDone == 2 ? done() : '';
+              if(2 === ++nDone) {
+                done();
+              }
             }));
 
             inputStream.pipe(filter).pipe(outputStream);
@@ -144,14 +156,19 @@ describe('StreamFilter', function() {
                 return done(err);
               }
               assert.equal(objs.length, 24);
-              ++nDone == 2 ? done() : '';
+              if(2 === ++nDone) {
+                done();
+              }
             });
+
             filter.restore.pipe(StreamTest[version].toObjects(function(err2, objs2) {
               if(err2) {
                 return done(err2);
               }
               assert.equal(objs2.length, 24);
-              ++nDone == 2 ? done() : '';
+              if(2 === ++nDone) {
+                done();
+              }
             }));
 
             inputStream.pipe(filter).pipe(outputStream);
