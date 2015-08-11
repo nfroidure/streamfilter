@@ -81,6 +81,82 @@ describe('StreamFilter', function() {
             inputStream.pipe(filter).pipe(outputStream);
           });
 
+          it('with restore option and more than 16 nested objects', function(done) {
+            var nDone = 0;
+            var inputStream = StreamTest[version].fromObjects([
+              object1, object2, object1, object2, object1, object2, object1, object2,
+              object1, object2, object1, object2, object1, object2, object1, object2,
+              object1, object2, object1, object2, object1, object2, object1, object2,
+              object1, object2, object1, object2, object1, object2, object1, object2,
+              object1, object2, object1, object2, object1, object2, object1, object2,
+              object1, object2, object1, object2, object1, object2, object1, object2,
+              object1, object2, object1, object2, object1, object2, object1, object2,
+              object1, object2, object1, object2, object1, object2, object1, object2,
+            ]);
+            var filter = new StreamFilter(function(obj, unused, cb) {
+              if(obj === object2) {
+                return cb(true);
+              }
+              return cb(false);
+            }, {
+              objectMode: true,
+              restore: true,
+            });
+            var outputStream = StreamTest[version].toObjects(function(err, objs) {
+              if(err) {
+                return done(err);
+              }
+              assert.equal(objs.length, 32);
+              ++nDone == 2 ? done() : '';
+            });
+            filter.restore.pipe(StreamTest[version].toObjects(function(err2, objs2) {
+              if(err2) {
+                return done(err2);
+              }
+              assert.equal(objs2.length, 32);
+              ++nDone == 2 ? done() : '';
+            }));
+
+            inputStream.pipe(filter).pipe(outputStream);
+          });
+
+          it('with restore option and more than 16 objects', function(done) {
+            var nDone = 0;
+            var inputStream = StreamTest[version].fromObjects([
+              object1, object1, object1, object1, object1, object1, object1, object1,
+              object1, object1, object1, object1, object1, object1, object1, object1,
+              object1, object1, object1, object1, object1, object1, object1, object1,
+              object2, object2, object2, object2, object2, object2, object2, object2,
+              object2, object2, object2, object2, object2, object2, object2, object2,
+              object2, object2, object2, object2, object2, object2, object2, object2,
+            ]);
+            var filter = new StreamFilter(function(obj, unused, cb) {
+              if(obj === object2) {
+                return cb(true);
+              }
+              return cb(false);
+            }, {
+              objectMode: true,
+              restore: true,
+            });
+            var outputStream = StreamTest[version].toObjects(function(err, objs) {
+              if(err) {
+                return done(err);
+              }
+              assert.equal(objs.length, 24);
+              ++nDone == 2 ? done() : '';
+            });
+            filter.restore.pipe(StreamTest[version].toObjects(function(err2, objs2) {
+              if(err2) {
+                return done(err2);
+              }
+              assert.equal(objs2.length, 24);
+              ++nDone == 2 ? done() : '';
+            }));
+
+            inputStream.pipe(filter).pipe(outputStream);
+          });
+
           it('with restore and passthrough option in a different pipeline', function(done) {
             var inputStream = StreamTest[version].fromObjects([object1, object2]);
             var filter = new StreamFilter(function(obj, unused, cb) {
