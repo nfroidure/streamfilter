@@ -33,7 +33,7 @@ function StreamFilter(filterCallback, options) {
         if(options.passthrough) {
           _this.restore.write(chunk, encoding, done);
         } else {
-          _this.restore.__programPush(chunk, encoding, function() {
+          _this._restoreManager.programPush(chunk, encoding, function() {
             done();
           });
         }
@@ -48,7 +48,9 @@ function StreamFilter(filterCallback, options) {
     done();
     if(options.restore) {
       if(!options.passthrough) {
-        this.restore.push(null);
+        this._restoreManager.programPush(null, {}.undef, function() {
+          done();
+        });
       } else if(this._restoreStreamCallback) {
         this._restoreStreamCallback();
       }
@@ -75,50 +77,54 @@ function StreamFilter(filterCallback, options) {
       };
     } else {
       this.restore = new stream.Readable(options);
-      this.restore.__waitPush = true;
-      this.restore.__programmedPush = null;
-
-      this.restore.__programPush = function streamFilterRestoreProgramPush(chunk, encoding, done) {
-        if(_this.restore.__programmedPush) {
-          _this.restore.emit('error', new Error('Not supposed to happen!'));
-        }
-        _this.restore.__programmedPush = [chunk, encoding, done];
-        // Need to be async to avoid nested push attempts
-        setImmediate(_this.restore.__attemptPush.bind(_this.restore));
-        _this.restore.emit('readable');
-        _this.restore.emit('drain');
-      };
-
-      this.restore.__attemptPush = function streamFilterRestoreAttemptPush() {
-        var cb = null;
-
-        if(_this.restore.__waitPush) {
-          if(_this.restore.__programmedPush) {
-            cb = _this.restore.__programmedPush[2];
-            _this.restore.__waitPush = _this.restore.push(
-              _this.restore.__programmedPush[0],
-              _this.restore.__programmedPush[1]
-            );
-            _this.restore.__programmedPush = null;
-            cb();
-          }
-        } else {
-          setImmediate(function() {
-            // Need to be async to avoid nested push attempts
-            _this.restore.emit('readable');
-          });
-        }
-      };
-
-      this.restore._read = function streamFilterRestoreRead() {
-        _this.restore.__waitPush = true;
-        // Need to be async to avoid nested push attempts
-        setImmediate(_this.restore.__attemptPush.bind(this));
-      };
+      this._restoreManager = createReadStreamBackpressureManager(this.restore);
     }
   }
 }
 
 util.inherits(StreamFilter, stream.Transform);
+
+// Utils to manage readable stream backpressure
+function createReadStreamBackpressureManager(readableStream) {
+  var manager = {
+    waitPush: true,
+    programmedPushs: [],
+    programPush: function programPush(chunk, encoding, done) {
+      // Store the current write
+      manager.programmedPushs.push([chunk, encoding, done]);
+      // Need to be async to avoid nested push attempts
+      // Programm a push attempt
+      setImmediate(manager.attemptPush);
+      // Let's say we're ready for a read
+      readableStream.emit('readable');
+      readableStream.emit('drain');
+    },
+    attemptPush: function attemptPush() {
+      var nextPush;
+
+      if(manager.waitPush) {
+        if(manager.programmedPushs.length) {
+          nextPush = manager.programmedPushs.shift();
+          manager.waitPush = readableStream.push(nextPush[0], nextPush[1]);
+          (nextPush[2])();
+        }
+      } else {
+        setImmediate(function() {
+          // Need to be async to avoid nested push attempts
+          readableStream.emit('readable');
+        });
+      }
+    },
+  };
+
+  // Patch the readable stream to manage reads
+  readableStream._read = function streamFilterRestoreRead() {
+    manager.waitPush = true;
+    // Need to be async to avoid nested push attempts
+    setImmediate(manager.attemptPush);
+  };
+
+  return manager;
+}
 
 module.exports = StreamFilter;
