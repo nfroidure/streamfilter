@@ -30,13 +30,9 @@ function StreamFilter(filterCallback, options) {
         _this.push(chunk, encoding);
         done();
       } else if(options.restore) {
-        if(options.passthrough) {
-          _this.restore.write(chunk, encoding, done);
-        } else {
-          _this._restoreManager.programPush(chunk, encoding, function() {
-            done();
-          });
-        }
+        _this._restoreManager.programPush(chunk, encoding, function() {
+          done();
+        });
       } else {
         done();
       }
@@ -62,19 +58,20 @@ function StreamFilter(filterCallback, options) {
   // Creating the restored stream if necessary
   if(options.restore) {
     if(options.passthrough) {
-      this.restore = new stream.Transform(options);
-
-      this.restore._transform = function streamFilterRestoreTransform(chunk, encoding, done) {
-        _this.restore.push(chunk, encoding);
-        done();
+      this.restore = new stream.Duplex(options);
+      this._restoreManager = createReadStreamBackpressureManager(this.restore);
+      this.restore._write = function streamFilterRestoreWrite(chunk, encoding, done) {
+        _this._restoreManager.programPush(chunk, encoding, done);
       };
 
-      this.restore._flush = function streamFilterRestoreFlush(done) {
-        _this._restoreStreamCallback = done;
+      this.restore.on('finish', function streamFilterRestoreFinish() {
+        _this._restoreStreamCallback = function() {
+          _this._restoreManager.programPush(null, {}.undef, function() {});
+        };
         if(_this._filterStreamEnded) {
-          done();
+          _this._restoreStreamCallback();
         }
-      };
+      });
     } else {
       this.restore = new stream.Readable(options);
       this._restoreManager = createReadStreamBackpressureManager(this.restore);
