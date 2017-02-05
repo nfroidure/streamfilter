@@ -3,7 +3,12 @@
 `streamfilter` is a function based filter for streams inspired per gulp-filter
  but no limited to Gulp nor to objectMode streams.
 
-[![NPM version](https://badge.fury.io/js/streamfilter.png)](https://npmjs.org/package/streamfilter) [![Build status](https://secure.travis-ci.org/nfroidure/streamfilter.png)](https://travis-ci.org/nfroidure/streamfilter) [![Dependency Status](https://david-dm.org/nfroidure/streamfilter.png)](https://david-dm.org/nfroidure/streamfilter) [![devDependency Status](https://david-dm.org/nfroidure/streamfilter/dev-status.png)](https://david-dm.org/nfroidure/streamfilter#info=devDependencies) [![Coverage Status](https://coveralls.io/repos/nfroidure/streamfilter/badge.png?branch=master)](https://coveralls.io/r/nfroidure/streamfilter?branch=master) [![Code Climate](https://codeclimate.com/github/nfroidure/streamfilter.png)](https://codeclimate.com/github/nfroidure/streamfilter)
+  [![NPM version](https://badge.fury.io/js/streamfilter.svg)](https://npmjs.org/package/streamfilter)
+ [![Build status](https://secure.travis-ci.org/nfroidure/streamfilter.svg)](https://travis-ci.org/nfroidure/streamfilter)
+ [![Dependency Status](https://david-dm.org/nfroidure/streamfilter.svg)](https://david-dm.org/nfroidure/streamfilter)
+ [![devDependency Status](https://david-dm.org/nfroidure/streamfilter/dev-status.svg)](https://david-dm.org/nfroidure/streamfilter#info=devDependencies)
+ [![Coverage Status](https://coveralls.io/repos/nfroidure/streamfilter/badge.svg?branch=master)](https://coveralls.io/r/nfroidure/streamfilter?branch=master)
+ [![Code Climate](https://codeclimate.com/github/nfroidure/streamfilter.svg)](https://codeclimate.com/github/nfroidure/streamfilter)
 
 ## Installation
 
@@ -132,4 +137,3 @@ npm test
 ## Stats
 [![NPM](https://nodei.co/npm/streamfilter.png?downloads=true&stars=true)](https://nodei.co/npm/streamfilter/)
 [![NPM](https://nodei.co/npm-dl/streamfilter.png)](https://nodei.co/npm/streamfilter/)
-

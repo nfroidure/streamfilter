@@ -1,10 +1,10 @@
 'use strict';
 
-var stream = require('readable-stream');
-var util = require('util');
+const stream = require('readable-stream');
+const util = require('util');
 
 function StreamFilter(filterCallback, options) {
-  var _this = this;
+  const _this = this;
 
   // Ensure new is called
   if(!(this instanceof StreamFilter)) {
@@ -19,7 +19,7 @@ function StreamFilter(filterCallback, options) {
   // Manage options
   options = options || {};
   options.restore = options.restore || false;
-  options.passthrough = options.restore && options.passthrough || false;
+  options.passthrough = (options.restore && options.passthrough) || false;
 
   this._filterStreamEnded = false;
   this._restoreStreamCallback = null;
@@ -29,22 +29,24 @@ function StreamFilter(filterCallback, options) {
       if(!filter) {
         _this.push(chunk, encoding);
         done();
-      } else if(options.restore) {
-        _this._restoreManager.programPush(chunk, encoding, function() {
+        return;
+      }
+      if(options.restore) {
+        _this._restoreManager.programPush(chunk, encoding, () => {
           done();
         });
-      } else {
-        done();
+        return;
       }
+      done();
     });
   };
 
   this._flush = function streamFilterFlush(done) {
     this._filterStreamEnded = true;
-    done();
+    done(); // eslint-disable-line
     if(options.restore) {
       if(!options.passthrough) {
-        this._restoreManager.programPush(null, {}.undef, function() {
+        this._restoreManager.programPush(null, {}.undef, () => {
           done();
         });
       } else if(this._restoreStreamCallback) {
@@ -65,8 +67,8 @@ function StreamFilter(filterCallback, options) {
       };
 
       this.restore.on('finish', function streamFilterRestoreFinish() {
-        _this._restoreStreamCallback = function() {
-          _this._restoreManager.programPush(null, {}.undef, function() {});
+        _this._restoreStreamCallback = () => {
+          _this._restoreManager.programPush(null, {}.undef, () => {});
         };
         if(_this._filterStreamEnded) {
           _this._restoreStreamCallback();
@@ -83,7 +85,7 @@ util.inherits(StreamFilter, stream.Transform);
 
 // Utils to manage readable stream backpressure
 function createReadStreamBackpressureManager(readableStream) {
-  var manager = {
+  const manager = {
     waitPush: true,
     programmedPushs: [],
     programPush: function programPush(chunk, encoding, done) {
@@ -97,7 +99,7 @@ function createReadStreamBackpressureManager(readableStream) {
       readableStream.emit('drain');
     },
     attemptPush: function attemptPush() {
-      var nextPush;
+      let nextPush;
 
       if(manager.waitPush) {
         if(manager.programmedPushs.length) {
@@ -106,7 +108,7 @@ function createReadStreamBackpressureManager(readableStream) {
           (nextPush[2])();
         }
       } else {
-        setImmediate(function() {
+        setImmediate(() => {
           // Need to be async to avoid nested push attempts
           readableStream.emit('readable');
         });
