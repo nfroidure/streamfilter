@@ -3,6 +3,12 @@
 const stream = require('readable-stream');
 const util = require('util');
 
+/**
+ * [StreamFilter description]
+ * @param {Function} filterCallback    Callback applying the filters
+ * @param {Object} options           Filtering options
+ * @returns {Stream}                 The filtering stream
+  */
 function StreamFilter(filterCallback, options) {
   const _this = this;
 
