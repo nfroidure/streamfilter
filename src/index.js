@@ -8,17 +8,17 @@ const util = require('util');
  * @param {Function} filterCallback    Callback applying the filters
  * @param {Object} options           Filtering options
  * @returns {Stream}                 The filtering stream
-  */
+ */
 function StreamFilter(filterCallback, options) {
   const _this = this;
 
   // Ensure new is called
-  if(!(this instanceof StreamFilter)) {
+  if (!(this instanceof StreamFilter)) {
     return new StreamFilter(filterCallback, options);
   }
 
   // filter callback is required
-  if(!(filterCallback instanceof Function)) {
+  if (!(filterCallback instanceof Function)) {
     throw new Error('filterCallback must be a function.');
   }
 
@@ -32,12 +32,12 @@ function StreamFilter(filterCallback, options) {
 
   this._transform = function streamFilterTransform(chunk, encoding, done) {
     filterCallback(chunk, encoding, function StreamFilterCallback(filter) {
-      if(!filter) {
+      if (!filter) {
         _this.push(chunk, encoding);
         done();
         return;
       }
-      if(options.restore) {
+      if (options.restore) {
         _this._restoreManager.programPush(chunk, encoding, () => {
           done();
         });
@@ -50,12 +50,12 @@ function StreamFilter(filterCallback, options) {
   this._flush = function streamFilterFlush(done) {
     this._filterStreamEnded = true;
     done(); // eslint-disable-line
-    if(options.restore) {
-      if(!options.passthrough) {
+    if (options.restore) {
+      if (!options.passthrough) {
         this._restoreManager.programPush(null, {}.undef, () => {
           done();
         });
-      } else if(this._restoreStreamCallback) {
+      } else if (this._restoreStreamCallback) {
         this._restoreStreamCallback();
       }
     }
@@ -64,11 +64,15 @@ function StreamFilter(filterCallback, options) {
   stream.Transform.call(this, options);
 
   // Creating the restored stream if necessary
-  if(options.restore) {
-    if(options.passthrough) {
+  if (options.restore) {
+    if (options.passthrough) {
       this.restore = new stream.Duplex(options);
       this._restoreManager = createReadStreamBackpressureManager(this.restore);
-      this.restore._write = function streamFilterRestoreWrite(chunk, encoding, done) {
+      this.restore._write = function streamFilterRestoreWrite(
+        chunk,
+        encoding,
+        done
+      ) {
         _this._restoreManager.programPush(chunk, encoding, done);
       };
 
@@ -76,7 +80,7 @@ function StreamFilter(filterCallback, options) {
         _this._restoreStreamCallback = () => {
           _this._restoreManager.programPush(null, {}.undef, () => {});
         };
-        if(_this._filterStreamEnded) {
+        if (_this._filterStreamEnded) {
           _this._restoreStreamCallback();
         }
       });
@@ -107,11 +111,11 @@ function createReadStreamBackpressureManager(readableStream) {
     attemptPush: function attemptPush() {
       let nextPush;
 
-      if(manager.waitPush) {
-        if(manager.programmedPushs.length) {
+      if (manager.waitPush) {
+        if (manager.programmedPushs.length) {
           nextPush = manager.programmedPushs.shift();
           manager.waitPush = readableStream.push(nextPush[0], nextPush[1]);
-          (nextPush[2])();
+          nextPush[2]();
         }
       } else {
         setImmediate(() => {
