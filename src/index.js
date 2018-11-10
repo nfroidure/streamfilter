@@ -4,9 +4,24 @@ const stream = require('readable-stream');
 const util = require('util');
 
 /**
- * [StreamFilter description]
+ * Filter piped in streams according to the given `filterCallback` that takes the
+ *  following arguments: `chunk` the actual chunk, `encoding` the chunk encoding,
+ *  filterResultCallback` the function to call as the result of the filtering
+ * process with `true` in argument to filter her or `false` otherwise.
+ *
+ * Options are passed in as is in the various stream instances spawned by this
+ *  module. So, to use the objectMode, simply pass in the `options.objectMode`
+ *  value set to `true`.
  * @param {Function} filterCallback    Callback applying the filters
  * @param {Object} options           Filtering options
+ * @param {boolean} options.passthrough
+ * Set to `true`, this option change the restore stream nature from a readable
+ *  stream to a passthrough one, allowing you to reuse the filtered chunks in an
+ *  existing pipeline.
+ * @param {boolean} options.restore
+ * Set to `true`, this option create a readable stream allowing you to use the
+ *  filtered chunks elsewhere. The restore stream is exposed in the `FilterStream`
+ *  instance as a `restore` named property.
  * @returns {Stream}                 The filtering stream
  */
 function StreamFilter(filterCallback, options) {
