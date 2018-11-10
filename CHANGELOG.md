@@ -1,3 +1,7 @@
+# [3.0.0](https://github.com/nfroidure/streamfilter/compare/v2.0.0...v3.0.0) (2018-11-10)
+
+
+
 <a name="2.0.0"></a>
 # [2.0.0](https://github.com/nfroidure/streamfilter/compare/v1.0.6...v2.0.0) (2017-12-06)
 
