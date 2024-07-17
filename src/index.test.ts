@@ -2,26 +2,25 @@ import { describe, test, expect } from '@jest/globals';
 import assert from 'assert';
 import Stream from 'stream';
 import StreamTest from 'streamtest';
-import StreamFilter from './index.js';
+import { StreamFilter, filterStream } from './index.js';
 import { YError } from 'yerror';
 
 describe('StreamFilter', () => {
   describe('should fail', () => {
     test('if options.filter is not a function', () => {
       try {
-        new StreamFilter(); // eslint-disable-line
+        // ts-ignore-next-line
+        new StreamFilter(undefined as any); // eslint-disable-line
         throw new YError('E_UNEXPECTED_SUCCESS');
       } catch (err) {
-        expect(err.code).toEqual('E_BAD_FILTER_CALLBACK');
+        expect((err as YError).code).toEqual('E_BAD_FILTER_CALLBACK');
       }
     });
   });
 
   describe('should work', () => {
     test('should work without new', () => {
-      const createFilter = StreamFilter;
-
-      assert(createFilter(() => {}) instanceof StreamFilter);
+      assert(filterStream(() => {}) instanceof StreamFilter);
     });
   });
 
@@ -34,7 +33,7 @@ describe('StreamFilter', () => {
       test('with no restore option', async () => {
         const inputStream = StreamTest.fromObjects([object1, object2]);
         const filter = new StreamFilter(
-          (obj, _unused, cb) => {
+          (obj: { test: string }, _unused, cb) => {
             if (obj === object2) {
               return cb(true);
             }
@@ -54,7 +53,7 @@ describe('StreamFilter', () => {
       test('with restore option', async () => {
         const inputStream = StreamTest.fromObjects([object1, object2]);
         const filter = new StreamFilter(
-          (obj, unused, cb) => {
+          (obj: { test: string }, _unused, cb) => {
             if (obj === object2) {
               return cb(true);
             }
@@ -147,7 +146,7 @@ describe('StreamFilter', () => {
           object2,
         ]);
         const filter = new StreamFilter(
-          (obj, unused, cb) => {
+          (obj: { test: string }, _unused, cb) => {
             if (obj === object2) {
               return cb(true);
             }
@@ -221,7 +220,7 @@ describe('StreamFilter', () => {
           object2,
         ]);
         const filter = new StreamFilter(
-          (obj, unused, cb) => {
+          (obj: { test: string }, _unused, cb) => {
             if (obj === object2) {
               return cb(true);
             }
@@ -246,7 +245,7 @@ describe('StreamFilter', () => {
       test('with restore and passthrough option in a different pipeline', async () => {
         const inputStream = StreamTest.fromObjects([object1, object2]);
         const filter = new StreamFilter(
-          (obj, unused, cb) => {
+          (obj: { test: string }, _unused, cb) => {
             if (obj === object2) {
               return cb(true);
             }
@@ -292,7 +291,7 @@ describe('StreamFilter', () => {
         const [outputStream, resultPromise] = StreamTest.toObjects();
         const duplexStream = new Stream.Duplex({ objectMode: true });
 
-        duplexStream._write = (obj, unused, cb) => {
+        duplexStream._write = (obj: { test: string }, _unused, cb) => {
           duplexStream.push(obj);
           setImmediate(cb);
         };
@@ -373,30 +372,33 @@ describe('StreamFilter', () => {
         );
         const [outputStream, resultPromise] = StreamTest.toObjects();
         const duplexStream = new Stream.Duplex({ objectMode: true });
+        const duplexStreamSpy = {
+          objs: [] as { test: string }[],
+          hasFinished: false,
+        };
 
-        duplexStream._objs = [];
-        duplexStream._write = (obj, unused, cb) => {
-          duplexStream._objs.push(obj);
+        duplexStream._write = (obj: { test: string }, _unused, cb) => {
+          duplexStreamSpy.objs.push(obj);
           cb();
         };
         duplexStream._read = () => {
           let obj;
 
-          if (duplexStream._hasFinished) {
-            while (duplexStream._objs.length) {
-              obj = duplexStream._objs.shift();
+          if (duplexStreamSpy.hasFinished) {
+            while (duplexStreamSpy.objs.length) {
+              obj = duplexStreamSpy.objs.shift();
               if (!duplexStream.push(obj)) {
                 break;
               }
             }
-            if (0 === duplexStream._objs.length) {
+            if (0 === duplexStreamSpy.objs.length) {
               duplexStream.push(null);
             }
           }
         };
         duplexStream.on('finish', () => {
-          duplexStream._hasFinished = true;
-          duplexStream._read();
+          duplexStreamSpy.hasFinished = true;
+          duplexStream._read(1);
         });
         outputStream.on('end', () => {
           assert(
@@ -449,9 +451,9 @@ describe('StreamFilter', () => {
 
   describe('in buffer mode', () => {
     describe('should work', () => {
-      const buffer1 = new Buffer('plop');
-      const buffer2 = new Buffer('plop2');
-      const buffer3 = new Buffer('plop3');
+      const buffer1 = Buffer.from('plop', 'utf-8');
+      const buffer2 = Buffer.from('plop2', 'utf-8');
+      const buffer3 = Buffer.from('plop3', 'utf-8');
 
       test('with no restore option', async () => {
         const inputStream = StreamTest.fromChunks([buffer1, buffer2]);

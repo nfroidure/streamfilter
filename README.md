@@ -13,11 +13,12 @@
 [//]: # (::contents:start)
 
 `streamfilter` is a function based filter for streams inspired per gulp-filter
- but no limited to Gulp nor to objectMode streams.
+but no limited to Gulp nor to objectMode streams.
 
 ## Installation
 
 First, install `streamfilter` in your project:
+
 ```sh
 npm install --save streamfilter
 ```
@@ -29,11 +30,12 @@ There are 3 common usages:
 ### Simple filter
 
 ```js
-import FilterStream from 'streamfilter';
+import { FilterStream } from 'streamfilter';
 
 const filter = new FilterStream((chunk, encoding, cb) => {
   const mustBeFiltered = chunk.length() > 128;
-  if(mustBeFiltered) {
+
+  if (mustBeFiltered) {
     cb(true);
     return;
   }
@@ -41,26 +43,27 @@ const filter = new FilterStream((chunk, encoding, cb) => {
 });
 
 // Print to stdout a filtered stdin
-process.stdin
-  .pipe(filter)
-  .pipe(process.stdout);
+process.stdin.pipe(filter).pipe(process.stdout);
 ```
 
 ### Filter and restore
 
 ```js
-import FilterStream from 'streamfilter';
+import { FilterStream } from 'streamfilter';
 
-const filter = new FilterStream((chunk, encoding, cb) => {
-  const mustBeFiltered = chunk.length() > 128;
-  if(mustBeFiltered) {
-    cb(true);
-    return;
-  }
-  cb(false);
-}, {
-  restore: true
-});
+const filter = new FilterStream(
+  (chunk, encoding, cb) => {
+    const mustBeFiltered = chunk.length() > 128;
+    if (mustBeFiltered) {
+      cb(true);
+      return;
+    }
+    cb(false);
+  },
+  {
+    restore: true,
+  },
+);
 
 // Print accepted chunks in stdout
 filter.pipe(process.stdout);
@@ -70,73 +73,102 @@ filter.restore.pipe(process.stderr);
 ```
 
 ### Filter and restore as a passthrough stream
+
 Let's reach total hype!
 
 ```js
-import FilterStream from 'streamfilter';
+import { FilterStream } from 'streamfilter';
 import { Transform } from 'stream';
 
 // Filter values
-const filter = new FilterStream((chunk, encoding, cb) => {
-  const mustBeFiltered = chunk.length() > 128;
-  if(mustBeFiltered) {
-    cb(true);
-    return;
-  }
-  cb(false);
-}, {
-  restore: true,
-  passthrough: true
-});
+const filter = new FilterStream(
+  (chunk, encoding, cb) => {
+    const mustBeFiltered = chunk.length() > 128;
+    if (mustBeFiltered) {
+      cb(true);
+      return;
+    }
+    cb(false);
+  },
+  {
+    restore: true,
+    passthrough: true,
+  },
+);
 
 // Uppercase strings
 const mySuperTransformStream = new Transform({
-  transform: (chunk, encoding, cb) => cb(
-    null,
-    Buffer.from(
-      chunk.toString(encoding).toUpperCase(),
-      encoding,
-    ),
-  ),
+  transform: (chunk, encoding, cb) =>
+    cb(null, Buffer.from(chunk.toString(encoding).toUpperCase(), encoding)),
 });
 
 // Pipe stdin
-process.stdin.pipe(filter)
+process.stdin
+  .pipe(filter)
   // Edit kept chunks
   .pipe(mySuperTransformStream)
   // Restore filtered chunks
   .pipe(filter.restore)
   // and output!
-  .pipe(process.stdout)
+  .pipe(process.stdout);
 ```
 
-Note that in this case, this is *your* responsibility to end the restore stream
- by piping in another stream or ending him manually.
+Note that in this case, this is _your_ responsibility to end the restore stream
+by piping in another stream or ending it manually.
 
 [//]: # (::contents:end)
 
 # API
+## Classes
+
+<dl>
+<dt><a href="#StreamFilter">StreamFilter</a></dt>
+<dd><p>Filter piped in streams according to the given <code>filterCallback</code>.</p>
+</dd>
+</dl>
+
+## Functions
+
+<dl>
+<dt><a href="#filterStream">filterStream(filterCallback, options)</a> ⇒</dt>
+<dd><p>Utility function if you prefer a functional way of using this lib</p>
+</dd>
+</dl>
+
 <a name="StreamFilter"></a>
 
-## StreamFilter(filterCallback, options) ⇒ <code>Stream</code>
-Filter piped in streams according to the given `filterCallback` that takes the
- following arguments: `chunk` the actual chunk, `encoding` the chunk encoding,
- filterResultCallback` the function to call as the result of the filtering
-process with `true` in argument to filter her or `false` otherwise.
+## StreamFilter
+Filter piped in streams according to the given `filterCallback`.
 
+**Kind**: global class  
+<a name="new_StreamFilter_new"></a>
+
+### new StreamFilter(filterCallback, options)
 Options are passed in as is in the various stream instances spawned by this
  module. So, to use the objectMode, simply pass in the `options.objectMode`
  value set to `true`.
 
-**Kind**: global function  
-**Returns**: <code>Stream</code> - The filtering stream  
+**Returns**: [<code>StreamFilter</code>](#StreamFilter) - The filtering stream  
 
 | Param | Type | Description |
 | --- | --- | --- |
 | filterCallback | <code>function</code> | Callback applying the filters |
 | options | <code>Object</code> | Filtering options |
-| options.passthrough | <code>boolean</code> | Set to `true`, this option change the restore stream nature from a readable  stream to a passthrough one, allowing you to reuse the filtered chunks in an  existing pipeline. |
+| options.passthrough | <code>boolean</code> | Set to `true`, this option changes the restore stream nature from a readable  stream to a passthrough one, allowing you to reuse the filtered chunks in an  existing pipeline. |
 | options.restore | <code>boolean</code> | Set to `true`, this option create a readable stream allowing you to use the  filtered chunks elsewhere. The restore stream is exposed in the `FilterStream`  instance as a `restore` named property. |
+
+<a name="filterStream"></a>
+
+## filterStream(filterCallback, options) ⇒
+Utility function if you prefer a functional way of using this lib
+
+**Kind**: global function  
+**Returns**: Stream  
+
+| Param |
+| --- |
+| filterCallback | 
+| options | 
 
 
 # Authors
