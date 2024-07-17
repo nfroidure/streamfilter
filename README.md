@@ -7,14 +7,7 @@
 # streamfilter
 > Filtering streams.
 
-[![Build status](https://secure.travis-ci.org/nfroidure/streamfilter.svg)](https://travis-ci.org/nfroidure/streamfilter)
-[![Coverage Status](https://coveralls.io/repos/nfroidure/streamfilter/badge.svg?branch=master)](https://coveralls.io/r/nfroidure/streamfilter?branch=master)
-[![NPM version](https://badge.fury.io/js/streamfilter.svg)](https://npmjs.org/package/streamfilter)
-[![Dependency Status](https://david-dm.org/nfroidure/streamfilter.svg)](https://david-dm.org/nfroidure/streamfilter)
-[![devDependency Status](https://david-dm.org/nfroidure/streamfilter/dev-status.svg)](https://david-dm.org/nfroidure/streamfilter#info=devDependencies)
-[![Dependency Status](https://dependencyci.com/github/nfroidure/streamfilter/badge)](https://dependencyci.com/github/nfroidure/streamfilter)
-[![Package Quality](http://npm.packagequality.com/shield/streamfilter.svg)](http://packagequality.com/#?package=streamfilter)
-[![Code Climate](https://codeclimate.com/github/nfroidure/streamfilter.svg)](https://codeclimate.com/github/nfroidure/streamfilter)
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/nfroidure/streamfilter/blob/main/LICENSE)
 
 
 [//]: # (::contents:start)
@@ -150,4 +143,4 @@ Options are passed in as is in the various stream instances spawned by this
 - [Nicolas Froidure](http://insertafter.com/en/index.html)
 
 # License
-[MIT](https://github.com/nfroidure/streamfilter/blob/master/LICENSE)
+[MIT](https://github.com/nfroidure/streamfilter/blob/main/LICENSE)

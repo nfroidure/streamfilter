@@ -1,7 +1,8 @@
 'use strict';
 
-const stream = require('readable-stream');
-const util = require('util');
+import { Transform, Duplex, Readable } from 'node:stream';
+import util from 'node:util';
+import { YError } from 'yerror';
 
 /**
  * Filter piped in streams according to the given `filterCallback` that takes the
@@ -24,7 +25,18 @@ const util = require('util');
  *  instance as a `restore` named property.
  * @returns {Stream}                 The filtering stream
  */
-function StreamFilter(filterCallback, options) {
+function StreamFilter<T>(
+  filterCallback: (
+    item: T,
+    encoding: Parameters<Transform['_transform']>[1],
+    cb: (filtered: boolean) => void,
+  ) => void,
+  options: {
+    passthrough?: boolean;
+    restore?: boolean;
+    objectMode?: boolean,
+  } = {},
+): void {
   const _this = this;
 
   // Ensure new is called
@@ -34,7 +46,7 @@ function StreamFilter(filterCallback, options) {
 
   // filter callback is required
   if (!(filterCallback instanceof Function)) {
-    throw new Error('filterCallback must be a function.');
+    throw new YError('E_BAD_FILTER_CALLBACK', typeof filterCallback);
   }
 
   // Manage options
@@ -76,17 +88,17 @@ function StreamFilter(filterCallback, options) {
     }
   };
 
-  stream.Transform.call(this, options);
+  Transform.call(this, options);
 
   // Creating the restored stream if necessary
   if (options.restore) {
     if (options.passthrough) {
-      this.restore = new stream.Duplex(options);
+      this.restore = new Duplex(options);
       this._restoreManager = createReadStreamBackpressureManager(this.restore);
       this.restore._write = function streamFilterRestoreWrite(
         chunk,
         encoding,
-        done
+        done,
       ) {
         _this._restoreManager.programPush(chunk, encoding, done);
       };
@@ -100,13 +112,13 @@ function StreamFilter(filterCallback, options) {
         }
       });
     } else {
-      this.restore = new stream.Readable(options);
+      this.restore = new Readable(options);
       this._restoreManager = createReadStreamBackpressureManager(this.restore);
     }
   }
 }
 
-util.inherits(StreamFilter, stream.Transform);
+util.inherits(StreamFilter, Transform);
 
 // Utils to manage readable stream backpressure
 function createReadStreamBackpressureManager(readableStream) {
@@ -151,4 +163,4 @@ function createReadStreamBackpressureManager(readableStream) {
   return manager;
 }
 
-module.exports = StreamFilter;
+export default StreamFilter;
