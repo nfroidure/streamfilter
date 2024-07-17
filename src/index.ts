@@ -3,11 +3,16 @@
 import { Transform, Duplex, Readable, type Writable } from 'node:stream';
 import { YError } from 'yerror';
 
-export type StreamFilterCallback<O extends Partial<StreamFilterOptions>, T> = (
-  item: StreamFilterItem<O, T>,
-  encoding: Parameters<Transform['_transform']>[1],
-  cb: (filtered: boolean) => void,
-) => void;
+export type StreamFilterCallback<O extends Partial<StreamFilterOptions>, T> =
+  | ((
+      item: StreamFilterItem<O, T>,
+      encoding: Parameters<Transform['_transform']>[1] | undefined,
+      cb: (filtered: boolean) => void,
+    ) => void)
+  | ((
+      item: StreamFilterItem<O, T>,
+      encoding?: Parameters<Transform['_transform']>[1],
+    ) => Promise<boolean>);
 export type StreamFilterOptions = {
   passthrough: boolean;
   restore: boolean;
@@ -117,12 +122,12 @@ class StreamFilter<
     }
   }
 
-  _transform(
+  async _transform(
     chunk: StreamFilterItem<O, T>,
     encoding: Parameters<Writable['write']>[1],
     done: () => void,
   ) {
-    this._filterCallback(chunk, encoding, (filter) => {
+    const cb = (filter: boolean) => {
       if (!filter) {
         this.push(chunk, encoding);
         done();
@@ -135,12 +140,18 @@ class StreamFilter<
         return;
       }
       done();
-    });
+    };
+
+    const result = this._filterCallback(chunk, encoding, cb);
+
+    if (result instanceof Promise) {
+      cb(await result);
+    }
   }
 
   _flush(done: () => void) {
     this._filterStreamEnded = true;
-    done(); // eslint-disable-line
+    done();
     if (this._options.restore) {
       if (!this._options.passthrough) {
         this._restoreManager?.programPush(null, undefined, () => {

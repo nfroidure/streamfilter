@@ -50,6 +50,26 @@ describe('StreamFilter', () => {
         assert.deepEqual(await resultPromise, [object1]);
       });
 
+      test('with no restore option ans an async filter callback', async () => {
+        const inputStream = StreamTest.fromObjects([object1, object2]);
+        const filter = new StreamFilter(
+          async (obj: { test: string }) => {
+            if (obj === object2) {
+              return true;
+            }
+            return false;
+          },
+          {
+            objectMode: true,
+          },
+        );
+        const [outputStream, resultPromise] = StreamTest.toObjects();
+
+        inputStream.pipe(filter).pipe(outputStream);
+
+        assert.deepEqual(await resultPromise, [object1]);
+      });
+
       test('with restore option', async () => {
         const inputStream = StreamTest.fromObjects([object1, object2]);
         const filter = new StreamFilter(

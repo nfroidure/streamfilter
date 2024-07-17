@@ -30,9 +30,9 @@ There are 3 common usages:
 ### Simple filter
 
 ```js
-import { FilterStream } from 'streamfilter';
+import { StreamFilter } from 'streamfilter';
 
-const filter = new FilterStream((chunk, encoding, cb) => {
+const filter = new StreamFilter((chunk, encoding, cb) => {
   const mustBeFiltered = chunk.length() > 128;
 
   if (mustBeFiltered) {
@@ -49,16 +49,18 @@ process.stdin.pipe(filter).pipe(process.stdout);
 ### Filter and restore
 
 ```js
-import { FilterStream } from 'streamfilter';
+import { filterStream } from 'streamfilter';
 
-const filter = new FilterStream(
-  (chunk, encoding, cb) => {
+// Here we use the functionnal help
+const filter = new filterStream(
+  // Here we use an async callback instead
+  async (chunk, encoding) => {
     const mustBeFiltered = chunk.length() > 128;
+
     if (mustBeFiltered) {
-      cb(true);
-      return;
+      return true;
     }
-    cb(false);
+    return false;
   },
   {
     restore: true,
@@ -77,11 +79,11 @@ filter.restore.pipe(process.stderr);
 Let's reach total hype!
 
 ```js
-import { FilterStream } from 'streamfilter';
+import { StreamFilter } from 'streamfilter';
 import { Transform } from 'stream';
 
 // Filter values
-const filter = new FilterStream(
+const filter = new StreamFilter(
   (chunk, encoding, cb) => {
     const mustBeFiltered = chunk.length() > 128;
     if (mustBeFiltered) {
