@@ -1,3 +1,23 @@
+# [4.0.0](https://github.com/nfroidure/streamfilter/compare/v3.0.0...v4.0.0) (2024-07-17)
+
+
+### Code Refactoring
+
+* **core:** use es6 class instead ([de678c8](https://github.com/nfroidure/streamfilter/commit/de678c88cc93db1d8d289a554da14a803dceb739)), closes [#5](https://github.com/nfroidure/streamfilter/issues/5)
+
+
+### Features
+
+* **core:** allow async funtions as callbacks ([affadc4](https://github.com/nfroidure/streamfilter/commit/affadc44bfbf5e675b793205f3583951a5a5a06a))
+
+
+### BREAKING CHANGES
+
+* **core:** No more magic, users will have to choose between the class `StreamFilter` and the
+`filterStream` utility function.
+
+
+
 # [3.0.0](https://github.com/nfroidure/streamfilter/compare/v2.0.0...v3.0.0) (2018-11-10)
 
 
