@@ -51,13 +51,13 @@ process.stdin.pipe(filter).pipe(process.stdout);
 ```js
 import { filterStream } from 'streamfilter';
 
-// Here we use the functionnal help
-const filter = new filterStream(
+// Here we use the functional helper
+const filter = filterStream(
   // Here we use an async callback instead
   async (chunk, encoding) => {
     const mustBeFiltered = chunk.length() > 128;
 
-    if (mustBeFiltered) {
+    if (await mustBeFiltered()) {
       return true;
     }
     return false;
